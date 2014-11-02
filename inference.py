@@ -307,10 +307,8 @@ class ParticleFilter(InferenceModule):
         else:
             weighted = util.Counter()
             for i in range(self.numParticles):
-                newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, self.particles[i]))
-                self.particles[i] = util.sample(newPosDist)
                 distance = util.manhattanDistance(pacmanPosition, self.particles[i])
-                weighted[self.particles[i]] = emissionModel[distance] 
+                weighted[self.particles[i]] += emissionModel[distance] 
             if weighted.totalCount() == 0:
                 self.initializeUniformly(gameState)
             else:
@@ -334,7 +332,10 @@ class ParticleFilter(InferenceModule):
         a belief distribution.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        for i in range(self.numParticles):
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, self.particles[i]))
+            self.particles[i] = util.sample(newPosDist)
+
 
     def getBeliefDistribution(self):
         """
