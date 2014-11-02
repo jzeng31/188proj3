@@ -310,7 +310,8 @@ class ParticleFilter(InferenceModule):
                 self.particles[i] = util.sample(newPosDist)
             weighted = util.Counter()
             for p in self.particles:
-                weighted[p] = emissionModel[p]
+                distance = util.manhattanDistance(pacmanPosition, p)
+                weighted[p] = emissionModel[distance] 
             if weighted.totalCount() == 0:
                 self.initializeUniformly(gameState)
             else:
