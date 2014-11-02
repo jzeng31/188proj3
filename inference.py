@@ -422,6 +422,16 @@ class JointParticleFilter:
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        particles = itertools.product(self.legalPositions, repeat=self.numGhosts)
+        permutations = []
+        for i in range(len(self.legalPositions)**self.numGhosts):
+            permutations.append(particles.next())
+        u = []
+        p = 0
+        for i in range(self.numParticles):
+            u.append(permutations[p])
+            p = (p+1) % len(permutations)
+        self.particles = u
 
     def addGhostAgent(self, agent):
         """
@@ -469,6 +479,34 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
+        g_weights = []
+        for i in range(self.numGhosts):
+            g_weights.append(util.Counter())
+
+        for g in range(self.numGhosts):
+            if noisyDistances[g] is None:
+                for i in range(self.numParticles):
+                    self.particles[i] = getParticleWithGhostInJail(self.particles[i], g)
+            else:
+                for p in self.particles:
+                    distance = util.manhattanDistance(pacmanPosition, p[g])
+                    g_weights[g][p[g]] += emissionModels[g][distance]
+                
+        weighted = util.Counter()
+        for p in self.particles:
+            weighted[p] = 1
+        for g in range(self.numGhosts):
+            for p in self.particles:
+                for pos in p:
+                    weighted[p] *= g_weights[g][pos]
+
+        if weighted.totalCount() == 0:
+           self.initializeParticles() 
+        else:
+            newGen = []
+            for i in range(self.numParticles):
+                newGen.append(util.sample(weighted))
+            self.particles = newGen
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
@@ -536,7 +574,11 @@ class JointParticleFilter:
 
     def getBeliefDistribution(self):
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        dist = util.Counter()
+        for p in self.particles:
+            dist[p] += 1
+        dist.normalize()
+        return dist
 
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()
