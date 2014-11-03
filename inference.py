@@ -479,25 +479,29 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
-        weighted = util.Counter()
-        for p in self.particles:
-            weighted[p] = 1
-        for i in range(self.numParticles):
-            for g in range(self.numGhosts):
-                if noisyDistances[g] is None:
-                    self.particles[i] = self.getParticleWithGhostInJail(self.particles[i], g)
-                else:
-                    distance = util.manhattanDistance(pacmanPosition, self.particles[i][g])
-                    weighted[self.particles[i]] *= emissionModels[g][distance]
-        
-        if weighted.totalCount() == 0:
-            self.initializeParticles()
-        else:
-            newGen = []
+        capturedGhost = -1
+        for g in range(self.numGhosts):
+            if noisyDistances[g] is None:
+                capturedGhost = g
+        if capturedGhost != -1:
             for i in range(self.numParticles):
-                newGen.append(util.sample(weighted))
-            self.particles = newGen
-
+                self.particles[i] = self.getParticleWithGhostInJail(self.particles[i], capturedGhost)
+        else:
+            weighted = util.Counter()
+            for p in self.particles:
+                weighted[p] = 1
+            for p in self.particles:
+                for g in range(self.numGhosts):
+                    distance = util.manhattanDistance(pacmanPosition, p[g])
+                    weighted[p] *= emissionModels[g][distance]
+            if weighted.totalCount() == 0:
+                self.initializeParticles()
+            else:
+                newGen = []
+                for i in range(self.numParticles):
+                    newGen.append(util.sample(weighted))
+                self.particles = newGen
+                
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
         Takes a particle (as a tuple of ghost positions) and returns a particle
