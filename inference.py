@@ -480,6 +480,8 @@ class JointParticleFilter:
 
         "*** YOUR CODE HERE ***"
         weighted = util.Counter()
+        for p in self.particles:
+            weighted[p] = 1
         for i in range(self.numParticles):
             for g in range(self.numGhosts):
                 if noisyDistances[g] is None:
