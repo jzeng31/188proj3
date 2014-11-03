@@ -480,15 +480,16 @@ class JointParticleFilter:
 
         "*** YOUR CODE HERE ***"
         weighted = util.Counter()
-        for p in self.particles:
-            weighted[p] = 1
         for i in range(self.numParticles):
+            currWeight = 1
             for g in range(self.numGhosts):
                 if noisyDistances[g] is None:
                     self.particles[i] = self.getParticleWithGhostInJail(self.particles[i], g)
                 else:
                     distance = util.manhattanDistance(pacmanPosition, self.particles[i][g])
-                    weighted[self.particles[i]] *= emissionModels[g][distance]
+                    currWeight *= emissionModels[g][distance]
+            
+            weighted[self.particles[i]] += currWeight 
         
         if weighted.totalCount() == 0:
             self.initializeParticles()
