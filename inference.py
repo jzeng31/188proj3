@@ -479,29 +479,17 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
-        g_weights = []
-        for i in range(self.numGhosts):
-            g_weights.append(util.Counter())
-
-        for g in range(self.numGhosts):
-            if noisyDistances[g] is None:
-                for i in range(self.numParticles):
-                    self.particles[i] = getParticleWithGhostInJail(self.particles[i], g)
-            else:
-                for p in self.particles:
-                    distance = util.manhattanDistance(pacmanPosition, p[g])
-                    g_weights[g][p[g]] += emissionModels[g][distance]
-                
         weighted = util.Counter()
-        for p in self.particles:
-            weighted[p] = 1
-        for g in range(self.numGhosts):
-            for p in self.particles:
-                for pos in p:
-                    weighted[p] *= g_weights[g][pos]
-
+        for i in range(self.numParticles):
+            for g in range(self.numGhosts):
+                if noisyDistances[g] is None:
+                    self.particles[i] = self.getParticleWithGhostInJail(self.particles[i], g)
+                else:
+                    distance = util.manhattanDistance(pacmanPosition, self.particles[i][g])
+                    weighted[self.particles[i]] *= emissionModels[g][distance]
+        
         if weighted.totalCount() == 0:
-           self.initializeParticles() 
+            self.initializeParticles()
         else:
             newGen = []
             for i in range(self.numParticles):
